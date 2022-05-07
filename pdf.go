@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"math"
+	"os"
 
 	"github.com/signintech/gopdf"
 )
@@ -29,9 +30,11 @@ func NewPdf(filename string) *Pdf {
 	p.pdf.AddPage()
 
 	// 默认字段, 待优化
-	p.AddFont("HDZB_5", "../ttf/wts11.ttf")
-	p.SetFont(FontStyle{12, "HDZB_5", Black})
-
+	_, err := os.Stat("../ttf/wts11.ttf")
+	if err == nil {
+		p.AddFont("HDZB_5", "../ttf/wts11.ttf")
+		p.SetFont(FontStyle{12, "HDZB_5", Black})
+	}
 	return p
 }
 
