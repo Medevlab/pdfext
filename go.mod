@@ -1,4 +1,4 @@
-module pdfext
+module github.com/Medevlab/pdfext
 
 go 1.18
 
