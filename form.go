@@ -57,7 +57,7 @@ func (f *Form) Draw(p *Pdf) {
 	p.pdf.SetY(y)
 
 	if f.Name != "" {
-		p.SetFont(FontStyle{f.NameStyle.FontSize, f.NameStyle.FontName, f.NameStyle.FontColor}).Cell(nil, f.Name)
+		p.SetFont(&FontStyle{f.NameStyle.FontSize, f.NameStyle.FontName, f.NameStyle.FontColor}).Cell(nil, f.Name)
 		y += 20
 	}
 
@@ -66,7 +66,7 @@ func (f *Form) Draw(p *Pdf) {
 			y += f.RowHeight
 			x = bx
 		}
-		p.SetFont(FontStyle{f.Unitstyle.NameStyle.FontSize, f.Unitstyle.NameStyle.Font, f.Unitstyle.NameStyle.FontColor})
+		p.SetFont(&FontStyle{f.Unitstyle.NameStyle.FontSize, f.Unitstyle.NameStyle.Font, f.Unitstyle.NameStyle.FontColor})
 
 		DrawRectCell(p.pdf, u.UnitName, int(f.Unitstyle.NameStyle.FontSize),
 			x, y, f.Unitstyle.NameWidth, f.RowHeight,
@@ -75,7 +75,7 @@ func (f *Form) Draw(p *Pdf) {
 			f.Unitstyle.NameStyle.V_Align)
 		x += f.Unitstyle.NameWidth
 
-		p.SetFont(FontStyle{f.Unitstyle.ValueStyle.FontSize, f.Unitstyle.ValueStyle.Font, f.Unitstyle.ValueStyle.FontColor})
+		p.SetFont(&FontStyle{f.Unitstyle.ValueStyle.FontSize, f.Unitstyle.ValueStyle.Font, f.Unitstyle.ValueStyle.FontColor})
 		DrawRectCell(p.pdf, u.UnitValue, int(f.Unitstyle.ValueStyle.FontSize),
 			x, y, f.Unitstyle.ValueWidth+cell_margin, f.RowHeight,
 			f.Unitstyle.ValueStyle.Background,

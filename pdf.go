@@ -13,16 +13,19 @@ import (
 type Pdf struct {
 	FileName    string //文件名
 	pdf         *gopdf.GoPdf
-	Fonts       []string //已注册字体
-	CurrentFont string   // 当前字体
-	CurrentXY   XY       //当前位置
-	MaxWidth    float64  // 内容区域最大宽度
+	Fonts       []string   //已注册字体
+	CurrentFont *FontStyle // 当前字体
+	CurrentXY   XY         //当前位置
+	MaxWidth    float64    // 内容区域最大宽度
+	MaxHeight   float64    // 内容区域最大高度
+	pdfheader   *Header
 }
 
 func NewPdf(filename string) *Pdf {
 	p := &Pdf{
 		FileName:  filename,
 		MaxWidth:  595.28,
+		MaxHeight: 841.89,
 		pdf:       &gopdf.GoPdf{},
 		CurrentXY: XY{0, 0},
 	}
@@ -33,7 +36,7 @@ func NewPdf(filename string) *Pdf {
 	_, err := os.Stat("../ttf/wts11.ttf")
 	if err == nil {
 		p.AddFont("HDZB_5", "../ttf/wts11.ttf")
-		p.SetFont(FontStyle{12, "HDZB_5", Black})
+		p.SetFont(&FontStyle{12, "HDZB_5", Black})
 	}
 	return p
 }
@@ -77,17 +80,27 @@ func (p *Pdf) AddText(text *Text) error {
 	return nil
 }
 func (p *Pdf) AddHeader(header *Header) error {
+	p.pdfheader = header
 	header.Draw(p)
 	return nil
+}
+
+func (p *Pdf) AddPage() {
+	fontstyle := p.CurrentFont
+	p.pdf.AddPage()
+	if p.pdfheader != nil {
+		p.pdfheader.Draw(p)
+	}
+	p.SetFont(fontstyle)
+
 }
 
 func (p *Pdf) Save() error {
 	return p.pdf.WritePdf(p.FileName)
 }
 
-////////////////////////////////////////////////////
-func (p *Pdf) SetFont(style FontStyle) *gopdf.GoPdf {
-
+func (p *Pdf) SetFont(style *FontStyle) *gopdf.GoPdf {
+	p.CurrentFont = style
 	color := colorMap[style.FontColor]
 
 	p.pdf.SetFont(style.FontName, "", style.FontSize)
@@ -96,6 +109,18 @@ func (p *Pdf) SetFont(style FontStyle) *gopdf.GoPdf {
 	return p.pdf
 }
 
+func (p *Pdf) UpdateXY(xy XY) XY {
+	if xy.Y > p.MaxHeight {
+		p.AddPage()
+		xy.Y = p.CurrentXY.Y
+	}
+	p.pdf.SetX(xy.X)
+	p.pdf.SetY(xy.Y)
+	p.CurrentXY = xy
+	return p.CurrentXY
+}
+
+////////////////////////////////////////////////////
 func DrawRectCell(pdf *gopdf.GoPdf,
 	text string,
 	fontSize int,

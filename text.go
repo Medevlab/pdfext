@@ -21,7 +21,7 @@ func (t *Text) Draw(p *Pdf) {
 	bx = left
 	var x float64 = bx
 
-	p.SetFont(FontStyle{int(t.TextStyle.FontSize), t.TextStyle.Font, t.TextStyle.FontColor})
+	p.SetFont(&FontStyle{int(t.TextStyle.FontSize), t.TextStyle.Font, t.TextStyle.FontColor})
 	if t.TextStyle.H_Align == HalignCenter {
 		textw, _ := p.pdf.MeasureTextWidth(t.Content)
 		x = x + (p.MaxWidth / 2) - (textw / 2)

@@ -26,7 +26,7 @@ func (h *Header) Draw(p *Pdf) {
 	// 	xstep[i] = u.Width + cell_margin
 	// }
 
-	p.SetFont(FontStyle{int(h.HeaderStyle.FontSize), h.HeaderStyle.FontName, h.HeaderStyle.FontColor})
+	p.SetFont(&FontStyle{int(h.HeaderStyle.FontSize), h.HeaderStyle.FontName, h.HeaderStyle.FontColor})
 	p.pdf.SetY(y)
 
 	if h.LeftText != "" {
