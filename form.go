@@ -1,5 +1,7 @@
 package pdfext
 
+import "math"
+
 // 表单
 type UnitStyle struct {
 	NameWidth  float64   // Name单元格的宽度
@@ -31,6 +33,11 @@ type Form struct {
 	RowHeight float64    // 每行高度
 }
 
+type formline struct {
+	maxheight float64
+	lineunits []FormUnit
+}
+
 func NewForm() *Form {
 	return &Form{}
 }
@@ -60,31 +67,64 @@ func (f *Form) Draw(p *Pdf) {
 		xy = p.UpdateXY(xy)
 	}
 
+	lineunits := []FormUnit{}
+
+	formlines := []formline{}
+
+	var linemaxheigth float64 = 0.0
 	for i, u := range f.Units { //
-		if i != 0 && i%f.ColNum == 0 {
-			xy.Y += f.RowHeight
-			xy.X = bx
-			xy = p.UpdateXY(xy)
-		}
 		p.SetFont(&FontStyle{f.Unitstyle.NameStyle.FontSize, f.Unitstyle.NameStyle.Font, f.Unitstyle.NameStyle.FontColor})
-
-		DrawRectCell(p.pdf, u.UnitName, int(f.Unitstyle.NameStyle.FontSize),
-			xy.X, xy.Y, f.Unitstyle.NameWidth, f.RowHeight,
-			f.Unitstyle.NameStyle.Background,
-			f.Unitstyle.NameStyle.H_Align,
-			f.Unitstyle.NameStyle.V_Align)
-		xy.X += f.Unitstyle.NameWidth
-
+		cw, _ := p.pdf.MeasureTextWidth(u.UnitName)
+		row := math.Ceil(cw / f.Unitstyle.NameWidth)
+		lineheigth := row * float64(f.Unitstyle.NameStyle.FontSize)
+		if lineheigth > linemaxheigth {
+			linemaxheigth = lineheigth
+		}
 		p.SetFont(&FontStyle{f.Unitstyle.ValueStyle.FontSize, f.Unitstyle.ValueStyle.Font, f.Unitstyle.ValueStyle.FontColor})
-		DrawRectCell(p.pdf, u.UnitValue, int(f.Unitstyle.ValueStyle.FontSize),
-			xy.X, xy.Y, f.Unitstyle.ValueWidth+cell_margin, f.RowHeight,
-			f.Unitstyle.ValueStyle.Background,
-			f.Unitstyle.ValueStyle.H_Align,
-			f.Unitstyle.ValueStyle.V_Align)
-		xy.X += (f.Unitstyle.ValueWidth + cell_margin)
+		cw, _ = p.pdf.MeasureTextWidth(u.UnitValue)
+		row = math.Ceil(cw / (f.Unitstyle.ValueWidth + cell_margin))
+		lineheigth = row * float64(f.Unitstyle.ValueStyle.FontSize)
+		if lineheigth > linemaxheigth {
+			linemaxheigth = lineheigth
+		}
+		lineunits = append(lineunits, u)
+		if (i+1)%f.ColNum == 0 || i+1 == len(f.Units) { //new line
+			formlines = append(formlines, formline{linemaxheigth, lineunits})
+			lineunits = make([]FormUnit, 0)
+			linemaxheigth = 0.0
+		}
+
+	}
+	for _, fl := range formlines {
+		height := fl.maxheight
+		if fl.maxheight < f.RowHeight {
+			height = f.RowHeight
+		}
+		if xy.Y+height > p.MaxHeight {
+			p.AddPage()
+			xy.Y = p.CurrentXY.Y
+		}
+
+		for _, l := range fl.lineunits {
+			p.SetFont(&FontStyle{f.Unitstyle.NameStyle.FontSize, f.Unitstyle.NameStyle.Font, f.Unitstyle.NameStyle.FontColor})
+			DrawRectMultiCell(p.pdf, l.UnitName, int(f.Unitstyle.NameStyle.FontSize),
+				xy.X, xy.Y, f.Unitstyle.NameWidth, height, f.RowHeight,
+				f.Unitstyle.NameStyle.Background,
+				f.Unitstyle.NameStyle.H_Align,
+				f.Unitstyle.NameStyle.V_Align)
+			xy.X += f.Unitstyle.NameWidth
+
+			p.SetFont(&FontStyle{f.Unitstyle.ValueStyle.FontSize, f.Unitstyle.ValueStyle.Font, f.Unitstyle.ValueStyle.FontColor})
+			DrawRectMultiCell(p.pdf, l.UnitValue, int(f.Unitstyle.ValueStyle.FontSize),
+				xy.X, xy.Y, f.Unitstyle.ValueWidth+cell_margin, height, f.RowHeight,
+				f.Unitstyle.ValueStyle.Background,
+				f.Unitstyle.ValueStyle.H_Align,
+				f.Unitstyle.ValueStyle.V_Align)
+			xy.X += (f.Unitstyle.ValueWidth + cell_margin)
+		}
+		xy.Y += height
+		xy.X = bx
 		xy = p.UpdateXY(xy)
 	}
-	xy.Y += f.RowHeight
-	xy = p.UpdateXY(xy)
 	//f.pdf.WritePdf(f.FileName)
 }

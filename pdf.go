@@ -181,7 +181,7 @@ func DrawRectMultiCell(pdf *gopdf.GoPdf,
 	} else {
 		row = math.Ceil(textw / (w - 3))
 	}
-	rh := rowheight
+	rh := h
 	if row == 1 {
 		nx := x
 		if align == HalignCenter {
@@ -201,16 +201,16 @@ func DrawRectMultiCell(pdf *gopdf.GoPdf,
 		w = w - 1.5
 	}
 
-	if h >= rowheight {
-		rh = float64(fontSize) * row
-	}
 	pdf.SetX(x)
 
+	// if h > rowheight {
+	// 	rh = float64(fontSize) * row
+	// }
 	if row == 1 {
 		if valign == ValignMiddle {
-			y = y + (h / 2) - (float64(fontSize) / 2)
+			y = y + (rh / 2) - (float64(fontSize) / 2)
 		} else if valign == ValignBottom {
-			y = y + h - float64(fontSize)
+			y = y + rh - float64(fontSize)
 		}
 	}
 
