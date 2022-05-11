@@ -38,12 +38,11 @@ func NewForm() *Form {
 func (f *Form) Draw(p *Pdf) {
 	var bx float64 = 0
 	var by float64 = f.YPosition
-	var y float64 = by
 
 	left := (595.28 - f.MaxWidth) / 2
 	bx = left
-	var x float64 = bx
 
+	var xy XY = XY{bx, by}
 	var width float64 = 0
 
 	width = (f.Unitstyle.NameWidth + f.Unitstyle.ValueWidth) * float64(f.ColNum)
@@ -53,38 +52,39 @@ func (f *Form) Draw(p *Pdf) {
 	margin := f.MaxWidth - width
 	cell_margin := margin / float64(f.ColNum)
 
-	p.pdf.SetX(x)
-	p.pdf.SetY(y)
+	xy = p.UpdateXY(xy)
 
 	if f.Name != "" {
 		p.SetFont(&FontStyle{f.NameStyle.FontSize, f.NameStyle.FontName, f.NameStyle.FontColor}).Cell(nil, f.Name)
-		y += 20
+		xy.Y += 20
+		xy = p.UpdateXY(xy)
 	}
 
 	for i, u := range f.Units { //
 		if i != 0 && i%f.ColNum == 0 {
-			y += f.RowHeight
-			x = bx
+			xy.Y += f.RowHeight
+			xy.X = bx
+			xy = p.UpdateXY(xy)
 		}
 		p.SetFont(&FontStyle{f.Unitstyle.NameStyle.FontSize, f.Unitstyle.NameStyle.Font, f.Unitstyle.NameStyle.FontColor})
 
 		DrawRectCell(p.pdf, u.UnitName, int(f.Unitstyle.NameStyle.FontSize),
-			x, y, f.Unitstyle.NameWidth, f.RowHeight,
+			xy.X, xy.Y, f.Unitstyle.NameWidth, f.RowHeight,
 			f.Unitstyle.NameStyle.Background,
 			f.Unitstyle.NameStyle.H_Align,
 			f.Unitstyle.NameStyle.V_Align)
-		x += f.Unitstyle.NameWidth
+		xy.X += f.Unitstyle.NameWidth
 
 		p.SetFont(&FontStyle{f.Unitstyle.ValueStyle.FontSize, f.Unitstyle.ValueStyle.Font, f.Unitstyle.ValueStyle.FontColor})
 		DrawRectCell(p.pdf, u.UnitValue, int(f.Unitstyle.ValueStyle.FontSize),
-			x, y, f.Unitstyle.ValueWidth+cell_margin, f.RowHeight,
+			xy.X, xy.Y, f.Unitstyle.ValueWidth+cell_margin, f.RowHeight,
 			f.Unitstyle.ValueStyle.Background,
 			f.Unitstyle.ValueStyle.H_Align,
 			f.Unitstyle.ValueStyle.V_Align)
-		x += (f.Unitstyle.ValueWidth + cell_margin)
-
+		xy.X += (f.Unitstyle.ValueWidth + cell_margin)
+		xy = p.UpdateXY(xy)
 	}
-	y += f.RowHeight
-	p.CurrentXY = XY{X: x, Y: y}
+	xy.Y += f.RowHeight
+	xy = p.UpdateXY(xy)
 	//f.pdf.WritePdf(f.FileName)
 }

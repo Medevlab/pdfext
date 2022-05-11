@@ -110,7 +110,7 @@ func (p *Pdf) SetFont(style *FontStyle) *gopdf.GoPdf {
 }
 
 func (p *Pdf) UpdateXY(xy XY) XY {
-	if xy.Y > p.MaxHeight {
+	if xy.Y > p.MaxHeight-15 {
 		p.AddPage()
 		xy.Y = p.CurrentXY.Y
 	}
@@ -187,8 +187,8 @@ func DrawRectMultiCell(pdf *gopdf.GoPdf,
 		}
 	}
 
-	if h > rowheight {
-		rh = float64(fontSize) * row
+	if h >= rowheight {
+		rh = float64(fontSize)*row + 1
 	}
 	pdf.SetX(x)
 
