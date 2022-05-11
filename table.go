@@ -82,7 +82,7 @@ func (t *Table) Draw(p *Pdf) {
 	xy.X = bx
 	xy.Y += t.RowHeight
 	xy = p.UpdateXY(xy)
-	//p.SetFont(&FontStyle{t.DataStyle.FontSize, t.DataStyle.Font, t.DataStyle.FontColor})
+	p.SetFont(&FontStyle{t.DataStyle.FontSize, t.DataStyle.Font, t.DataStyle.FontColor})
 	for _, d := range t.Data { // draw title
 		maxrow := 1.0
 		for _, c := range t.Colums {
@@ -103,15 +103,23 @@ func (t *Table) Draw(p *Pdf) {
 			xy.Y = p.CurrentXY.Y
 		}
 		for _, c := range t.Colums { // draw title
-
 			if style, ok := t.ColumnDataStyles[c.Name]; ok {
-				p.SetFont(&FontStyle{t.DataStyle.FontSize, t.DataStyle.Font, style.FontColor})
+				background := t.DataStyle.Background
+				if style.Background != 0 {
+					background = style.Background
+				}
+				halign := t.DataStyle.H_Align
+				if style.H_Align != 0 {
+					halign = style.H_Align
+				}
+				valign := t.DataStyle.V_Align
+				if style.V_Align != 0 {
+					valign = style.V_Align
+				}
 				DrawRectMultiCell(p.pdf, d[c.Name], int(t.DataStyle.FontSize),
 					xy.X, xy.Y, xstep[c.Name], height, t.RowHeight,
-					style.Background, style.H_Align, style.V_Align)
+					background, halign, valign)
 			} else {
-				p.SetFont(&FontStyle{t.DataStyle.FontSize, t.DataStyle.Font, t.DataStyle.FontColor})
-
 				DrawRectMultiCell(p.pdf, d[c.Name], int(t.DataStyle.FontSize),
 					xy.X, xy.Y, xstep[c.Name], height, t.RowHeight,
 					t.DataStyle.Background, t.DataStyle.H_Align, t.DataStyle.V_Align)
