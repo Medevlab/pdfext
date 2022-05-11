@@ -130,7 +130,7 @@ func DrawRectCell(pdf *gopdf.GoPdf,
 ) {
 
 	c := colorMap[color]
-	pdf.SetLineWidth(0.1)
+	pdf.SetLineWidth(0.05)
 	pdf.SetFillColor(c.r, c.g, c.b) //setup fill color
 	pdf.RectFromUpperLeftWithStyle(x, y, w, h, "FD")
 	pdf.SetFillColor(0, 0, 0)
@@ -140,7 +140,9 @@ func DrawRectCell(pdf *gopdf.GoPdf,
 		x = x + (w / 2) - (textw / 2)
 	} else if align == HalignRight {
 		textw, _ := pdf.MeasureTextWidth(text)
-		x = x + w - textw
+		x = x + w - 1.5 - textw
+	} else {
+		x = x + 1.5
 	}
 
 	pdf.SetX(x)
@@ -164,31 +166,43 @@ func DrawRectMultiCell(pdf *gopdf.GoPdf,
 	align Halign, valign Valign,
 ) {
 
+	var row float64 = 1
 	c := colorMap[color]
-	pdf.SetLineWidth(0.1)
+	pdf.SetLineWidth(0.05)
 	pdf.SetFillColor(c.r, c.g, c.b) //setup fill color
 	pdf.RectFromUpperLeftWithStyle(x, y, w, h, "FD")
 	pdf.SetFillColor(0, 0, 0)
 	textw, _ := pdf.MeasureTextWidth(text)
-	row := math.Ceil(textw / w)
 
+	if align == HalignCenter {
+		row = math.Ceil(textw / w)
+	} else if align == HalignRight {
+		row = math.Ceil(textw / (w - 1.5))
+	} else {
+		row = math.Ceil(textw / (w - 3))
+	}
 	rh := rowheight
 	if row == 1 {
 		nx := x
 		if align == HalignCenter {
 			nx = x + (w / 2) - (textw / 2)
 		} else if align == HalignRight {
-			nx = x + w - textw
+			nx = x + w - 1.5 - textw
+		} else {
+			nx = x + 1.5
 		}
 		if nx < x {
 			nx = x
 		} else {
 			x = nx
 		}
+	} else {
+		x = x + 1.5
+		w = w - 1.5
 	}
 
 	if h >= rowheight {
-		rh = float64(fontSize)*row + 1
+		rh = float64(fontSize) * row
 	}
 	pdf.SetX(x)
 
